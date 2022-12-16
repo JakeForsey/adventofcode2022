@@ -24,8 +24,9 @@ def run(lines, row):
     sensors = set()
     beacons = set()
     for line in lines:
-        groups = re.search(r"([0-9])*", line)
-        print(groups.groups())
+        coords = re.findall(r"(-?[0-9]+)", line)
+        sx, sy, bx, by = [int(v) for v in coords]
+        print(sx, sy, bx, by)
         # sx, sy, bx, by = []
         # TODO: Implement me
         pass
