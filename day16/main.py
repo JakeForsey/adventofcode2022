@@ -15,10 +15,6 @@ Valve JJ has flow rate=21; tunnel leads to valve II"""
 TEST_ANSWER = 1651
 
 
-OPEN = "open"
-MOVE = "move"
-
-
 class Valve:
     def __init__(self, valve_id, flow_rate, child_ids):
         self.valve_id = valve_id
@@ -73,11 +69,9 @@ def run(lines):
     dm = CachedDM(valves)
 
     closed_ids = set([nid for nid, n in valves.items() if n.flow_rate > 0])
-    print(len(closed_ids))
     todo = [[("AA", closed_ids, 30, 0)]]
     paths = []
     while todo:
-        print(len(todo), len(paths))
         path = todo.pop()
 
         valve_id, candidate_ids, turns_remaining, released = path[-1]
