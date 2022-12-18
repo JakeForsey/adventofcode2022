@@ -1,5 +1,4 @@
 from pathlib import Path
-from functools import lru_cache
 
 
 TEST_INPUT = """Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
@@ -110,6 +109,3 @@ if __name__ == "__main__":
     print(f"[TEST] {'PASSED' if mock_answer == TEST_ANSWER else 'FAILED'}")
     answer = run(parse_data(Path("input.txt").read_text()))
     print(f"[RUN] answer: {answer}")
-
-
-
