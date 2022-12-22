@@ -43,15 +43,15 @@ def get_valid_actions(state: State, blueprint: Blueprint) -> Set[Action]:
     return actions
 
 
-def cant_use_more_mineral(state: State, blueprint: Blueprint, mineral: str) -> bool:
+def cant_use_more_mineral(state: State, blueprint: Blueprint, mineral: str, action_cost: int) -> bool:
     remaining_steps = RUN_TIME - state.steps
-    stockpiled = state.__getattribute__(mineral)
+    stockpiled = state.__getattribute__(mineral) - action_cost
     stockpiled_rate = stockpiled // remaining_steps
     new_rate = state.__getattribute__(f"{mineral}_robots") + 1
-    return stockpiled_rate + new_rate >= max(blueprint.ore_cost.__getattribute__(mineral),
-                                             blueprint.clay_cost.__getattribute__(mineral),
-                                             blueprint.geode_cost.__getattribute__(mineral),
-                                             blueprint.obsidian_cost.__getattribute__(mineral))
+    return stockpiled_rate + new_rate > max(blueprint.ore_cost.__getattribute__(mineral),
+                                            blueprint.clay_cost.__getattribute__(mineral),
+                                            blueprint.geode_cost.__getattribute__(mineral),
+                                            blueprint.obsidian_cost.__getattribute__(mineral))
 
 
 def factorial(n: int) -> int:
@@ -174,11 +174,11 @@ def run(lines):
                 actions.remove(Action.NOOP)
 
             # Prune actions that buy robots that mine minerals we could never spend
-            if Action.BUY_ORE_ROBOT in actions and cant_use_more_mineral(state, blueprint, "ore"):
+            if Action.BUY_ORE_ROBOT in actions and cant_use_more_mineral(state, blueprint, "ore", blueprint.ore_cost.ore):
                 actions.remove(Action.BUY_ORE_ROBOT)
-            if Action.BUY_CLAY_ROBOT in actions and cant_use_more_mineral(state, blueprint, "clay"):
+            if Action.BUY_CLAY_ROBOT in actions and cant_use_more_mineral(state, blueprint, "clay", blueprint.clay_cost.clay):
                 actions.remove(Action.BUY_CLAY_ROBOT)
-            if Action.BUY_OBSIDIAN_ROBOT in actions and cant_use_more_mineral(state, blueprint, "obsidian"):
+            if Action.BUY_OBSIDIAN_ROBOT in actions and cant_use_more_mineral(state, blueprint, "obsidian", blueprint.obsidian_cost.obsidian):
                 actions.remove(Action.BUY_OBSIDIAN_ROBOT)
 
             # --- Expansion
@@ -188,7 +188,7 @@ def run(lines):
         max_scores[blueprint.id] = max_score
 
     print(max_scores)
-    return
+    return sum(bid * score for bid, score in max_scores.items())
 
 
 def mock(lines):
@@ -204,6 +204,6 @@ if __name__ == "__main__":
     print(f"[TEST] Expected answer: {TEST_ANSWER}")
     print(f"[TEST] Actual answer: {mock_answer}")
     print(f"[TEST] {'PASSED' if mock_answer == TEST_ANSWER else 'FAILED'}")
-    # answer = run(parse_data(Path("input.txt").read_text()))
-    # print(f"[RUN] answer: {answer}")
+    answer = run(parse_data(Path("input.txt").read_text()))
+    print(f"[RUN] answer: {answer}")
 
