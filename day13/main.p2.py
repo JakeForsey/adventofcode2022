@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import cmp_to_key
 import json
 from pathlib import Path
 
@@ -26,7 +27,7 @@ TEST_INPUT = """[1,1,3,1,1]
 
 [1,[2,[3,[4,[5,6,7]]]],8,9]
 [1,[2,[3,[4,[5,6,0]]]],8,9]"""
-TEST_ANSWER = 13
+TEST_ANSWER = 140
 
 
 class Result(Enum):
@@ -36,7 +37,6 @@ class Result(Enum):
 
 
 def compare(left, right, depth=0):
-    print(" " * depth, f"- Compare {left} vs {right}")
     if isinstance(left, int) and isinstance(right, int):
         if left == right:
             return Result.CONTINUE
@@ -72,19 +72,26 @@ def compare(left, right, depth=0):
 
 def run(lines):
     lines.append("")
-    right_order = []
-    for i in range(0, len(lines), 3):
-        pair_idx = (i // 3) + 1
-        left, right = json.loads(lines[i]), json.loads(lines[i + 1])
-        print(f"== Pair {pair_idx} ==")
-        result = compare(left, right)
-        print(result)
-        if result == Result.RIGHT or result == Result.CONTINUE:
-            right_order.append(pair_idx)
-        print()
+    packets = [
+        [[2]],
+        [[6]]
+    ]
+    for line in lines:
+        if line == "":
+            continue
+        packets.append(json.loads(line))
 
-    print(right_order)
-    return sum(right_order)
+    def _compare(a, b):
+        result = compare(a, b)
+        if result == Result.RIGHT:
+            return 1
+        elif result == Result.WRONG:
+            return -1
+        else:
+            return 0
+
+    packets = sorted(packets, key=cmp_to_key(_compare), reverse=True)
+    return (packets.index([[2]]) + 1) * (packets.index([[6]]) + 1)
 
 
 def mock(lines):
