@@ -19,7 +19,7 @@ TEST_INPUT = """        ...#
         ......#.
 
 10R5L5R10L4R5L5"""
-TEST_ANSWER = 6032
+TEST_ANSWER = 5031
 
 
 class Tile(Enum):
@@ -37,6 +37,19 @@ class Direction(Enum):
 
 CLOCKWISE = [Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
 COUNTER_CLOCKWISE = [Direction.UP, Direction.LEFT, Direction.DOWN, Direction.RIGHT, Direction.UP]
+
+
+def dir_to_char(direction: Direction) -> str:
+    if direction == Direction.LEFT:
+        return "<"
+    elif direction == Direction.RIGHT:
+        return ">"
+    elif direction == Direction.UP:
+        return "^"
+    elif direction == Direction.DOWN:
+        return "V"
+    else:
+        raise AssertionError(f"Unknown direction {direction}")
 
 
 def dir_to_score(direction: Direction) -> int:
@@ -63,6 +76,24 @@ def dir_to_vec(direction: Direction) -> Tuple[int, int]:
         return 0, -1
 
 
+def print_board(board, path):
+    print()
+    for y in range(max(pos[1] for pos in board) + 1):
+        row = ""
+        for x in range(max(pos[0] for pos in board) + 1):
+            if (x, y) in path:
+                row += dir_to_char(path[(x, y)])
+                continue
+
+            if board[(x, y)] == Tile.EMPTY:
+                row += "."
+            elif board[(x, y)] == Tile.WALL:
+                row += "#"
+            else:
+                row += " "
+        print(row)
+
+
 def index_of(instructions, direction_change):
     try:
         return instructions.index(direction_change)
@@ -83,17 +114,23 @@ def run(lines):
     direction = Direction.RIGHT
     max_x = max(x for x, y in board)
     max_y = max(y for x, y in board)
+    print(0, max_x, 0, max_y)
+
     x, y = min(pos for pos, tile in board.items() if tile == Tile.EMPTY and pos[1] == 1)
+    path = {}
     while True:
+        path[(x, y)] = direction
         index = min(index_of(instructions, "R"), index_of(instructions, "L"))
         steps = int(instructions[:index])
         dx, dy = dir_to_vec(direction)
         for i in range(steps):
+            path[(x, y)] = direction
             next_x = (x + dx) % max_x
             next_y = (y + dy) % max_y
             if board[(next_x, next_y)] == Tile.WALL:
                 break
             elif board[(next_x, next_y)] == Tile.WRAP:
+                # TODO: Implement cube wrapping here.
                 while board[(next_x, next_y)] == Tile.WRAP:
                     next_x = (next_x + dx) % max_x
                     next_y = (next_y + dy) % max_y
@@ -116,6 +153,7 @@ def run(lines):
 
         instructions = instructions[index + 1:]
 
+    print_board(board, path)
     return (1000 * y) + (4 * x) + dir_to_score(direction)
 
 
@@ -132,6 +170,6 @@ if __name__ == "__main__":
     print(f"[TEST] Expected answer: {TEST_ANSWER}")
     print(f"[TEST] Actual answer: {mock_answer}")
     print(f"[TEST] {'PASSED' if mock_answer == TEST_ANSWER else 'FAILED'}")
-    answer = run(parse_data(Path("input.txt").read_text()))
-    print(f"[RUN] answer: {answer}")
+    # answer = run(parse_data(Path("input.txt").read_text()))
+    # print(f"[RUN] answer: {answer}")
 
